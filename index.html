@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +18,7 @@
       justify-content: center;
       align-items: center;
     }
+
     .card {
       background: #fff;
       color: #333;
@@ -24,13 +26,15 @@
       max-width: 420px;
       padding: 25px;
       border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
       transition: 0.3s;
     }
+
     .card h2 {
       color: #0056b3;
       margin-bottom: 20px;
     }
+
     input {
       width: 90%;
       padding: 12px;
@@ -39,6 +43,7 @@
       border-radius: 8px;
       font-size: 15px;
     }
+
     button {
       width: 90%;
       padding: 12px;
@@ -49,10 +54,26 @@
       cursor: pointer;
       transition: .2s;
     }
-    #loginBtn { background: #007bff; color: #fff; }
-    #loginBtn:hover { background: #0056b3; }
-    #checkInBtn { background: #28a745; color: #fff; }
-    #checkOutBtn { background: #dc3545; color: #fff; }
+
+    #loginBtn {
+      background: #007bff;
+      color: #fff;
+    }
+
+    #loginBtn:hover {
+      background: #0056b3;
+    }
+
+    #checkInBtn {
+      background: #28a745;
+      color: #fff;
+    }
+
+    #checkOutBtn {
+      background: #dc3545;
+      color: #fff;
+    }
+
     #flash {
       margin-top: 15px;
       padding: 10px;
@@ -60,10 +81,26 @@
       display: none;
       font-weight: bold;
     }
-    .success { background: #28a745; color: white; }
-    .error { background: #dc3545; color: white; }
-    .info { background: #ffc107; color: #000; }
-    #empPanel { display: none; }
+
+    .success {
+      background: #28a745;
+      color: white;
+    }
+
+    .error {
+      background: #dc3545;
+      color: white;
+    }
+
+    .info {
+      background: #ffc107;
+      color: #000;
+    }
+
+    #empPanel {
+      display: none;
+    }
+
     #geoMsg {
       display: none;
       margin-top: 10px;
@@ -75,6 +112,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="card" id="loginPanel">
@@ -199,20 +237,45 @@
       );
     };
 
-    // 🔹 تسجيل الدخول
+    // 🔹 تسجيل الدخول (بجهاز واحد فقط)
     loginBtn.onclick = async () => {
       const code = empCode.value.trim();
       const pass = empPass.value.trim();
       const msgBox = document.getElementById("loginMsg");
 
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (!isMobile) {
+        msgBox.innerText = "❌ لا يمكن تسجيل الدخول إلا من خلال هاتف جوّال فقط.";
+        return;
+      }
+
       if (!code || !pass) return msgBox.innerText = "⚠️ أدخل الكود وكلمة المرور";
 
-      const snap = await get(ref(db, `hrEmployees/${code}`));
+      const empRef = ref(db, `hrEmployees/${code}`);
+      const snap = await get(empRef);
       if (!snap.exists()) return msgBox.innerText = "❌ كود الموظف غير صحيح";
 
       const emp = snap.val();
       const savedPass = emp.password || emp.personal?.nid;
       if (savedPass !== pass) return msgBox.innerText = "❌ كلمة المرور غير صحيحة";
+
+      let deviceId = localStorage.getItem("deviceId");
+      if (!deviceId) {
+        deviceId = crypto.randomUUID();
+        localStorage.setItem("deviceId", deviceId);
+      }
+
+      const registeredDevice = emp.deviceId || null;
+
+      if (registeredDevice && registeredDevice !== deviceId) {
+        msgBox.innerText = "❌ هذا الحساب مسجل على هاتف آخر، لا يمكن تسجيل الدخول.";
+        return;
+      }
+
+      if (!registeredDevice) {
+        await update(empRef, { deviceId });
+        console.log("📱 تم ربط الحساب بهذا الجهاز:", deviceId);
+      }
 
       currentEmp = emp;
       loginPanel.style.display = 'none';
@@ -220,7 +283,6 @@
       empName.textContent = emp.personal?.fullName || '---';
       empJob.textContent = emp.job?.jobTitle || '';
 
-      // تحميل بيانات المنطقة الخاصة بالموظف
       const regionName = emp.personal?.regionCode || emp.personal?.employeeRegion || null;
       allowedRegion = await loadAllowedRegion(regionName);
 
@@ -229,7 +291,6 @@
       }
     };
 
-    // 🔹 أدوات الوقت والمسافة
     function nowISODate() { return new Date().toISOString().split('T')[0]; }
     function nowTime24() { return new Date().toLocaleTimeString('en-GB', { hour12: false }); }
 
@@ -238,15 +299,32 @@
       const toRad = v => v * Math.PI / 180;
       const dLat = toRad(lat2 - lat1);
       const dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
     // 🔹 تسجيل الحضور والانصراف
+    // 🔹 تسجيل الحضور والانصراف (مرة واحدة فقط)
     async function saveAttendance(type) {
       if (!currentEmp) return showFlash("لم يتم تسجيل الدخول", "error");
       if (!navigator.geolocation) return showFlash("جهازك لا يدعم تحديد الموقع", "error");
       if (!allowedRegion) return showFlash("⚠️ لم يتم تحديد المنطقة المسموح بها للموظف", "error");
+
+      const code = empCode.value.trim();
+      const today = nowISODate();
+      const attendanceRef = ref(db, `attendance/${today}/${code}`);
+      const existingSnap = await get(attendanceRef);
+
+      // ✅ التحقق من تكرار البصمة
+      if (existingSnap.exists()) {
+        const data = existingSnap.val();
+        if (type === "checkIn" && data.checkIn) {
+          return showFlash("⚠️ تم تسجيل الحضور مسبقًا لهذا اليوم", "info");
+        }
+        if (type === "checkOut" && data.checkOut) {
+          return showFlash("⚠️ تم تسجيل الانصراف مسبقًا لهذا اليوم", "info");
+        }
+      }
 
       navigator.geolocation.getCurrentPosition(async (pos) => {
         const lat = pos.coords.latitude;
@@ -257,10 +335,7 @@
           return showFlash(`❌ أنت خارج نطاق المنطقة المسموح بها (${Math.round(distance)}م)`, "error");
         }
 
-        const code = empCode.value.trim();
-        const today = nowISODate();
         const time = nowTime24();
-
         const base = `attendance/${today}/${code}`;
         const payload = {};
         payload[`${base}/${type}`] = { time, status: 'تم التسجيل', companyCode, device: 'Mobile', lat, lng };
@@ -279,7 +354,9 @@
 
     document.getElementById("checkInBtn").onclick = () => saveAttendance('checkIn');
     document.getElementById("checkOutBtn").onclick = () => saveAttendance('checkOut');
+
   </script>
 
 </body>
+
 </html>
