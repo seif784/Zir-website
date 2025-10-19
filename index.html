@@ -283,7 +283,7 @@
       empName.textContent = emp.personal?.fullName || '---';
       empJob.textContent = emp.job?.jobTitle || '';
 
-      const regionName = emp.personal?.regionCode || emp.personal?.employeeRegion || null;
+      const regionName = emp.job?.workLocation || emp.job?.workLocation || null;
       allowedRegion = await loadAllowedRegion(regionName);
 
       if (!allowedRegion) {
@@ -303,7 +303,6 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    // 🔹 تسجيل الحضور والانصراف
     // 🔹 تسجيل الحضور والانصراف (مرة واحدة فقط)
     async function saveAttendance(type) {
       if (!currentEmp) return showFlash("لم يتم تسجيل الدخول", "error");
