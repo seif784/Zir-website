@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام الحضور والانصراف</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #0056b3, #007bff);
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card {
+      background: #fff;
+      color: #333;
+      width: 95%;
+      max-width: 420px;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      transition: 0.3s;
+    }
+    .card h2 {
+      color: #0056b3;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 90%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    button {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: .2s;
+    }
+    #loginBtn { background: #007bff; color: #fff; }
+    #loginBtn:hover { background: #0056b3; }
+    #checkInBtn { background: #28a745; color: #fff; }
+    #checkOutBtn { background: #dc3545; color: #fff; }
+    #flash {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      display: none;
+      font-weight: bold;
+    }
+    .success { background: #28a745; color: white; }
+    .error { background: #dc3545; color: white; }
+    .info { background: #ffc107; color: #000; }
+    #empPanel { display: none; }
+    #geoMsg {
+      display: none;
+      margin-top: 10px;
+      background: #ffc107;
+      color: #000;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="loginPanel">
+    <h2>تسجيل دخول الموظف</h2>
+    <input type="text" id="empCode" placeholder="كود الموظف">
+    <input type="password" id="empPass" placeholder="كلمة المرور">
+    <button id="loginBtn">تسجيل الدخول</button>
+    <div id="loginMsg" style="color:red;margin-top:10px;"></div>
+    <div id="geoMsg">
+      ⚠️ يرجى تفعيل إذن الموقع من إعدادات المتصفح واختيار "السماح دائمًا" ليعمل النظام بشكل صحيح.
+    </div>
+  </div>
+
+  <div class="card" id="empPanel">
+    <h2 id="empName">---</h2>
+    <h4 id="empJob">---</h4>
+    <button id="checkInBtn">تسجيل حضور</button>
+    <button id="checkOutBtn">تسجيل انصراف</button>
+    <div id="flash"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    // إعداد Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIsfw-ACHyOPsi57d5kUaqvIv6s6S8znY",
+      authDomain: "sin-fin-73aca.firebaseapp.com",
+      databaseURL: "https://sin-fin-73aca-default-rtdb.firebaseio.com",
+      projectId: "sin-fin-73aca",
+      storageBucket: "sin-fin-73aca.appspot.com",
+      messagingSenderId: "1072605463778",
+      appId: "1:1072605463778:web:15da1d9672e5ec8ec4cabb",
+      measurementId: "G-LWZQ7WN6GQ"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // عناصر الواجهة
+    const loginPanel = document.getElementById("loginPanel");
+    const empPanel = document.getElementById("empPanel");
+    const loginBtn = document.getElementById("loginBtn");
+    const empCode = document.getElementById("empCode");
+    const empPass = document.getElementById("empPass");
+    const empName = document.getElementById("empName");
+    const empJob = document.getElementById("empJob");
+    const flash = document.getElementById("flash");
+    const geoMsg = document.getElementById("geoMsg");
+
+    let currentEmp = null;
+    const allowedRegion = { lat: 30.0569, lng: 31.3300, radius: 300 };
+    const companyCode = "MAIN";
+
+    function showFlash(msg, type = 'info') {
+      flash.style.display = 'block';
+      flash.className = type;
+      flash.textContent = msg;
+      setTimeout(() => flash.style.display = 'none', 3000);
+    }
+
+    // 🔹 طلب إذن الموقع مباشرة عند الدخول
+    window.onload = () => {
+      if (!navigator.geolocation) {
+        geoMsg.style.display = "block";
+        geoMsg.textContent = "⚠️ جهازك لا يدعم تحديد الموقع.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        () => console.log("✔️ إذن الموقع مفعل."),
+        (err) => {
+          geoMsg.style.display = "block";
+          if (err.code === 1) {
+            geoMsg.textContent = "❌ تم رفض إذن الموقع. الرجاء السماح من إعدادات المتصفح واختيار (السماح دائمًا).";
+          } else if (err.code === 2) {
+            geoMsg.textContent = "⚠️ تعذر الحصول على الموقع. تأكد من تشغيل GPS.";
+          } else {
+            geoMsg.textContent = "⚠️ الرجاء السماح للموقع من إعدادات المتصفح.";
+          }
+          console.error(err);
+        },
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    };
+
+    // 🔹 تسجيل الدخول
+    loginBtn.onclick = async () => {
+      const code = empCode.value.trim();
+      const pass = empPass.value.trim();
+      const msgBox = document.getElementById("loginMsg");
+
+      if (!code || !pass) return msgBox.innerText = "⚠️ أدخل الكود وكلمة المرور";
+
+      const snap = await get(ref(db, `hrEmployees/${code}`));
+      if (!snap.exists()) return msgBox.innerText = "❌ كود الموظف غير صحيح";
+
+      const emp = snap.val();
+      const savedPass = emp.password || emp.personal?.nid;
+      if (savedPass !== pass) return msgBox.innerText = "❌ كلمة المرور غير صحيحة";
+
+      currentEmp = emp;
+      loginPanel.style.display = 'none';
+      empPanel.style.display = 'block';
+      empName.textContent = emp.personal?.fullName || '---';
+      empJob.textContent = emp.job?.jobTitle || '';
+    };
+
+    // 🔹 أدوات الوقت والمسافة
+    function nowISODate() { return new Date().toISOString().split('T')[0]; }
+    function nowTime24() { return new Date().toLocaleTimeString('en-GB', { hour12: false }); }
+
+    function getDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const toRad = v => v * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    // 🔹 تسجيل الحضور والانصراف
+    async function saveAttendance(type) {
+      if (!currentEmp) return showFlash("لم يتم تسجيل الدخول", "error");
+      if (!navigator.geolocation) return showFlash("جهازك لا يدعم تحديد الموقع", "error");
+
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const distance = getDistanceMeters(lat, lng, allowedRegion.lat, allowedRegion.lng);
+
+        if (distance > allowedRegion.radius) {
+          return showFlash(`❌ أنت خارج نطاق المنطقة المسموح بها (${Math.round(distance)}م)`, "error");
+        }
+
+        const code = empCode.value.trim();
+        const today = nowISODate();
+        const time = nowTime24();
+
+        const base = `attendance/${today}/${code}`;
+        const payload = {};
+        payload[`${base}/${type}`] = { time, status: 'تم التسجيل', companyCode, device: 'Mobile', lat, lng };
+        payload[`${base}/lastUpdate`] = { time, type, ts: Date.now(), device: 'Mobile', lat, lng };
+
+        await update(ref(db), payload);
+        showFlash(`✅ تم تسجيل ${type === 'checkIn' ? 'الحضور' : 'الانصراف'} بنجاح`, "success");
+
+      }, (err) => {
+        showFlash("❌ لم يتم الحصول على الموقع", "error");
+        geoMsg.style.display = "block";
+        geoMsg.textContent = "⚠️ يرجى تفعيل إذن الموقع يدويًا واختيار (السماح دائمًا).";
+        console.error(err);
+      }, { enableHighAccuracy: true, timeout: 15000 });
+    }
+
+    document.getElementById("checkInBtn").onclick = () => saveAttendance('checkIn');
+    document.getElementById("checkOutBtn").onclick = () => saveAttendance('checkOut');
+  </script>
+
+</body>
+</html>
