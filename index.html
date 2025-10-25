@@ -2,353 +2,824 @@
 <html lang="ar" dir="rtl">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام الحضور والانصراف</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: linear-gradient(135deg, #0056b3, #007bff);
-      color: #fff;
-      text-align: center;
-      padding: 20px;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نظام الحضور والانصراف بالهاتف + إجازات</title>
 
-    .card {
-      background: #fff;
-      color: #333;
-      width: 95%;
-      max-width: 420px;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-      transition: 0.3s;
-    }
+    <!-- Cairo font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
 
-    .card h2 {
-      color: #0056b3;
-      margin-bottom: 20px;
-    }
+    <!-- Font Awesome (icons) -->
+    <script src="https://kit.fontawesome.com/a2d9b7f6e1.js" crossorigin="anonymous"></script>
 
-    input {
-      width: 90%;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-    }
+    <style>
+        * {
+            box-sizing: border-box;
+            transition: 0.3s ease;
+        }
 
-    button {
-      width: 90%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: .2s;
-    }
+        body {
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #0a0f2c, #001a3d, #012860);
+            background-size: 300% 300%;
+            animation: bgMove 10s infinite alternate;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px 10px;
+        }
 
-    #loginBtn {
-      background: #007bff;
-      color: #fff;
-    }
+        @keyframes bgMove {
+            0% {
+                background-position: 0% 50%
+            }
 
-    #loginBtn:hover {
-      background: #0056b3;
-    }
+            100% {
+                background-position: 100% 50%
+            }
+        }
 
-    #checkInBtn {
-      background: #28a745;
-      color: #fff;
-    }
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 18px;
+            border-radius: 14px;
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.08);
+            margin-bottom: 12px;
+        }
 
-    #checkOutBtn {
-      background: #dc3545;
-      color: #fff;
-    }
+        .card input,
+        .card select,
+        .card textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            margin: 8px 0;
+            text-align: center;
+            font-family: inherit;
+        }
 
-    #flash {
-      margin-top: 15px;
-      padding: 10px;
-      border-radius: 8px;
-      display: none;
-      font-weight: bold;
-    }
+        .card button {
+            background: linear-gradient(90deg, #007bff, #00d4ff);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            padding: 10px;
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+        }
 
-    .success {
-      background: #28a745;
-      color: white;
-    }
+        .small-btn {
+            padding: 8px 10px;
+            border-radius: 9px;
+            cursor: pointer;
+            border: none;
+            margin: 5px;
+            background: rgba(255, 255, 255, 0.08);
+        }
 
-    .error {
-      background: #dc3545;
-      color: white;
-    }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
 
-    .info {
-      background: #ffc107;
-      color: #000;
-    }
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            font-weight: 700;
+            background: linear-gradient(90deg, #007bff, #00d4ff);
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+        }
 
-    #empPanel {
-      display: none;
-    }
+        .action-btn.checkout {
+            background: linear-gradient(90deg, #ff0066, #ff4e50);
+            box-shadow: 0 0 12px rgba(255, 77, 109, 0.25);
+        }
 
-    #geoMsg {
-      display: none;
-      margin-top: 10px;
-      background: #ffc107;
-      color: #000;
-      padding: 10px;
-      border-radius: 8px;
-      font-weight: bold;
-    }
-  </style>
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .menu-item {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 12px 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .menu-item:hover {
+            transform: scale(1.04);
+            background: rgba(0, 255, 255, 0.08);
+        }
+
+        .menu-item i {
+            font-size: 20px;
+            color: #00ffff;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .menu-item span {
+            font-size: 0.85rem;
+            color: #eaeaea;
+        }
+
+        #flash {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 700;
+        }
+
+        .info {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .success {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .error {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        footer {
+            margin-top: 12px;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.82rem;
+            text-align: center;
+        }
+
+        @media (max-width:360px) {
+            .menu-item i {
+                font-size: 18px;
+            }
+        }
+
+        /* panels */
+        .panel {
+            display: none;
+            text-align: right;
+            direction: rtl;
+        }
+
+        .panel.show {
+            display: block;
+        }
+
+        /* notifications list style */
+        .notif-item {
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            text-align: right;
+        }
+
+        .notif-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+    </style>
 </head>
 
 <body>
 
-  <div class="card" id="loginPanel">
-    <h2>تسجيل دخول الموظف</h2>
-    <input type="text" id="empCode" placeholder="كود الموظف">
-    <input type="password" id="empPass" placeholder="كلمة المرور">
-    <button id="loginBtn">تسجيل الدخول</button>
-    <div id="loginMsg" style="color:red;margin-top:10px;"></div>
-    <div id="geoMsg">
-      ⚠️ يرجى تفعيل إذن الموقع من إعدادات المتصفح واختيار "السماح دائمًا" ليعمل النظام بشكل صحيح.
+    <!-- Login -->
+    <div class="card" id="loginPanel">
+        <h2>تسجيل دخول الموظف / المدير</h2>
+        <input type="text" id="empCodeInput" placeholder="كود الموظف (مثال: 1001)" />
+        <input type="password" id="empPassInput" placeholder="كلمة المرور" />
+        <button id="loginBtn">تسجيل الدخول</button>
+        <div id="loginMsg" style="color:#ff8080;margin-top:8px;"></div>
+        <div id="geoMsg"
+            style="display:none;margin-top:8px;background:#ffc107;color:#000;padding:8px;border-radius:8px;">⚠️ يرجى
+            تفعيل إذن الموقع من إعدادات المتصفح واختيار "السماح دائمًا".</div>
     </div>
-  </div>
 
-  <div class="card" id="empPanel">
-    <h2 id="empName">---</h2>
-    <h4 id="empJob">---</h4>
-    <button id="checkInBtn">تسجيل حضور</button>
-    <button id="checkOutBtn">تسجيل انصراف</button>
-    <div id="flash"></div>
-  </div>
+    <!-- Employee main panel -->
+    <div class="card panel" id="empPanel">
+        <div class="profile-info">
+            <h2 id="empName">---</h2>
+            <h4 id="empJob">---</h4>
+        </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        <div class="menu-grid">
+            <div class="menu-item" id="attendanceMenu"><i class="fa-solid fa-calendar-check"></i><span>الحضور</span>
+            </div>
+            <div class="menu-item" id="myRequestsMenu"><i class="fa-solid fa-box"></i><span>طلباتي</span></div>
+            <div class="menu-item" id="travelMenu"><i class="fa-solid fa-briefcase"></i><span>رحلات العمل</span></div>
+            <div class="menu-item" id="overtimeMenu"><i class="fa-solid fa-clock"></i><span>الإضافي</span></div>
+            <div class="menu-item" id="leaveMenu"><i class="fa-solid fa-plane-departure"></i><span>الإجازات</span></div>
+            <div class="menu-item" id="permMenu"><i class="fa-solid fa-file-lines"></i><span>الأذونات / الإشعارات</span>
+            </div>
+        </div>
 
-    // إعداد Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyAIsfw-ACHyOPsi57d5kUaqvIv6s6S8znY",
-      authDomain: "sin-fin-73aca.firebaseapp.com",
-      databaseURL: "https://sin-fin-73aca-default-rtdb.firebaseio.com",
-      projectId: "sin-fin-73aca",
-      storageBucket: "sin-fin-73aca.appspot.com",
-      messagingSenderId: "1072605463778",
-      appId: "1:1072605463778:web:15da1d9672e5ec8ec4cabb",
-      measurementId: "G-LWZQ7WN6GQ"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+        <div class="action-buttons">
+            <button class="action-btn" id="checkInBtn"><i class="fa-solid fa-fingerprint"></i> تسجيل حضور</button>
+            <button class="action-btn checkout" id="checkOutBtn"><i class="fa-solid fa-door-open"></i> تسجيل
+                انصراف</button>
+        </div>
 
-    // عناصر الواجهة
-    const loginPanel = document.getElementById("loginPanel");
-    const empPanel = document.getElementById("empPanel");
-    const loginBtn = document.getElementById("loginBtn");
-    const empCode = document.getElementById("empCode");
-    const empPass = document.getElementById("empPass");
-    const empName = document.getElementById("empName");
-    const empJob = document.getElementById("empJob");
-    const flash = document.getElementById("flash");
-    const geoMsg = document.getElementById("geoMsg");
+        <div id="flash"></div>
 
-    let currentEmp = null;
-    let allowedRegion = null; // سيتم تحميلها من قاعدة البيانات
-    const companyCode = "MAIN";
+        <!-- Leave Panel (embedded inside empPanel) -->
+        <div class="card panel" id="leavePanel" style="margin-top:12px;">
+            <h3>طلب إجازة</h3>
 
-    function showFlash(msg, type = 'info') {
-      flash.style.display = 'block';
-      flash.className = type;
-      flash.textContent = msg;
-      setTimeout(() => flash.style.display = 'none', 3000);
-    }
+            <label style="display:block;text-align:right;">نوع الإجازة</label>
+            <select id="leaveTypeSelect">
+                <option value="">اختر نوع الإجازة</option>
+            </select>
 
-    // 🔹 تحميل المنطقة الخاصة بالموظف
-    async function loadAllowedRegion(regionCode) {
-      try {
-        if (!regionCode) {
-          console.warn("⚠️ لا توجد منطقة محددة للموظف.");
-          return null;
-        }
+            <div style="display:flex;gap:8px;">
+                <input type="date" id="leaveFrom" />
+                <input type="date" id="leaveTo" />
+            </div>
 
-        const regionRef = ref(db, `Region/${regionCode}`);
-        const snap = await get(regionRef);
+            <textarea id="leaveNotes" placeholder="ملاحظات"></textarea>
 
-        if (!snap.exists()) {
-          console.warn(`🚫 لم يتم العثور على المنطقة بالكود: ${regionCode}`);
-          return null;
-        }
+            <button id="sendLeaveBtn">إرسال الطلب</button>
+            <button class="small-btn" id="backToMainBtn">رجوع</button>
 
-        const foundRegion = snap.val();
-        console.log("📍 تم تحميل بيانات المنطقة:", foundRegion);
+            <div id="leaveMsg" style="margin-top:8px;color:#bff;"></div>
 
-        return {
-          lat: parseFloat(foundRegion.Lat),
-          lng: parseFloat(foundRegion.Lng),
-          radius: parseFloat(foundRegion.Radius)
+            <div id="myLeaves" style="margin-top:12px;text-align:right;"></div>
+        </div>
+
+    </div>
+
+    <!-- Notifications panel (used by manager/HR and also visible to employee for messages) -->
+    <div class="card panel" id="notifPanel">
+        <h3>الإشعارات</h3>
+        <div id="notifList">⏳ جاري التحميل...</div>
+        <button class="small-btn" id="backFromNotif">رجوع</button>
+    </div>
+
+    <footer>نظام الحضور والإجازات — نسخة متكاملة (Firebase)</footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getDatabase, ref, get, update, set, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+        // ---------- إعداد Firebase (ضع config خاصتك إذا اختلف) ----------
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIsfw-ACHyOPsi57d5kUaqvIv6s6S8znY",
+            authDomain: "sin-fin-73aca.firebaseapp.com",
+            databaseURL: "https://sin-fin-73aca-default-rtdb.firebaseio.com",
+            projectId: "sin-fin-73aca",
+            storageBucket: "sin-fin-73aca.appspot.com",
+            messagingSenderId: "1072605463778",
+            appId: "1:1072605463778:web:15da1d9672e5ec8ec4cabb",
+            measurementId: "G-LWZQ7WN6GQ"
         };
-      } catch (err) {
-        console.error("❌ خطأ أثناء تحميل المنطقة:", err);
-        return null;
-      }
-    }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    // 🔹 طلب إذن الموقع مباشرة عند الدخول
-    window.onload = () => {
-      if (!navigator.geolocation) {
-        geoMsg.style.display = "block";
-        geoMsg.textContent = "⚠️ جهازك لا يدعم تحديد الموقع.";
-        return;
-      }
+        // ---------- عناصر الصفحة ----------
+        const loginPanel = document.getElementById("loginPanel");
+        const empPanel = document.getElementById("empPanel");
+        const notifPanel = document.getElementById("notifPanel");
+        const leavePanel = document.getElementById("leavePanel");
 
-      navigator.geolocation.getCurrentPosition(
-        () => console.log("✔️ إذن الموقع مفعل."),
-        (err) => {
-          geoMsg.style.display = "block";
-          if (err.code === 1) {
-            geoMsg.textContent = "❌ تم رفض إذن الموقع. الرجاء السماح من إعدادات المتصفح واختيار (السماح دائمًا).";
-          } else if (err.code === 2) {
-            geoMsg.textContent = "⚠️ تعذر الحصول على الموقع. تأكد من تشغيل GPS.";
-          } else {
-            geoMsg.textContent = "⚠️ الرجاء السماح للموقع من إعدادات المتصفح.";
-          }
-          console.error(err);
-        },
-        { enableHighAccuracy: true, timeout: 15000 }
-      );
-    };
+        const loginBtn = document.getElementById("loginBtn");
+        const empCodeInput = document.getElementById("empCodeInput");
+        const empPassInput = document.getElementById("empPassInput");
+        const loginMsg = document.getElementById("loginMsg");
+        const empName = document.getElementById("empName");
+        const empJob = document.getElementById("empJob");
+        const flash = document.getElementById("flash");
+        const geoMsg = document.getElementById("geoMsg");
 
-    // 🔹 تسجيل الدخول (بجهاز واحد فقط)
-    loginBtn.onclick = async () => {
-      const code = empCode.value.trim();
-      const pass = empPass.value.trim();
-      const msgBox = document.getElementById("loginMsg");
+        const leaveTypeSelect = document.getElementById("leaveTypeSelect");
+        const leaveFrom = document.getElementById("leaveFrom");
+        const leaveTo = document.getElementById("leaveTo");
+        const leaveNotes = document.getElementById("leaveNotes");
+        const sendLeaveBtn = document.getElementById("sendLeaveBtn");
+        const backToMainBtn = document.getElementById("backToMainBtn");
+        const myLeavesDiv = document.getElementById("myLeaves");
+        const leaveMsg = document.getElementById("leaveMsg");
 
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      if (!isMobile) {
-        msgBox.innerText = "❌ لا يمكن تسجيل الدخول إلا من خلال هاتف جوّال فقط.";
-        return;
-      }
+        const notifList = document.getElementById("notifList");
+        const backFromNotif = document.getElementById("backFromNotif");
 
-      if (!code || !pass) return msgBox.innerText = "⚠️ أدخل الكود وكلمة المرور";
+        // menu buttons
+        const leaveMenu = document.getElementById("leaveMenu");
+        const permMenu = document.getElementById("permMenu");
+        const myRequestsMenu = document.getElementById("myRequestsMenu");
+        const attendanceMenu = document.getElementById("attendanceMenu");
 
-      const empRef = ref(db, `hrEmployees/${code}`);
-      const snap = await get(empRef);
-      if (!snap.exists()) return msgBox.innerText = "❌ كود الموظف غير صحيح";
+        const checkInBtn = document.getElementById("checkInBtn");
+        const checkOutBtn = document.getElementById("checkOutBtn");
 
-      const emp = snap.val();
-      const savedPass = emp.password || emp.personal?.nid;
-      if (savedPass !== pass) return msgBox.innerText = "❌ كلمة المرور غير صحيحة";
+        // ---------- حالة التطبيق ----------
+        let currentEmp = null; // بيانات الموظف الحالية (كائن كما في hrEmployees/{code})
+        let currentEmpCode = ""; // الكود النصي الذي سجّل الدخول
+        let allowedRegion = null;
+        const companyCode = "MAIN";
 
-      let deviceId = localStorage.getItem("deviceId");
-      if (!deviceId) {
-        deviceId = crypto.randomUUID();
-        localStorage.setItem("deviceId", deviceId);
-      }
-
-      const registeredDevice = emp.deviceId || null;
-
-      if (registeredDevice && registeredDevice !== deviceId) {
-        msgBox.innerText = "❌ هذا الحساب مسجل على هاتف آخر، لا يمكن تسجيل الدخول.";
-        return;
-      }
-
-      if (!registeredDevice) {
-        await update(empRef, { deviceId });
-        console.log("📱 تم ربط الحساب بهذا الجهاز:", deviceId);
-      }
-
-      currentEmp = emp;
-      loginPanel.style.display = 'none';
-      empPanel.style.display = 'block';
-      empName.textContent = emp.personal?.fullName || '---';
-      empJob.textContent = emp.job?.jobTitle || '';
-
-      const regionCode = emp.job?.workLocation || null;
-      allowedRegion = await loadAllowedRegion(regionCode);
-
-
-      if (!allowedRegion) {
-        showFlash("⚠️ لم يتم العثور على المنطقة المسموح بها لهذا الموظف", "error");
-      }
-    };
-
-    function nowISODate() { return new Date().toISOString().split('T')[0]; }
-    function nowTime24() { return new Date().toLocaleTimeString('en-GB', { hour12: false }); }
-
-    function getDistanceMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371000;
-      const toRad = v => v * Math.PI / 180;
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    }
-
-    // 🔹 تسجيل الحضور والانصراف (مرة واحدة فقط)
-    async function saveAttendance(type) {
-      if (!currentEmp) return showFlash("لم يتم تسجيل الدخول", "error");
-      if (!navigator.geolocation) return showFlash("جهازك لا يدعم تحديد الموقع", "error");
-      if (!allowedRegion) return showFlash("⚠️ لم يتم تحديد المنطقة المسموح بها للموظف", "error");
-
-      const code = empCode.value.trim();
-      const today = nowISODate();
-      const attendanceRef = ref(db, `attendance/${today}/${code}`);
-      const existingSnap = await get(attendanceRef);
-
-      // ✅ التحقق من تكرار البصمة
-      if (existingSnap.exists()) {
-        const data = existingSnap.val();
-        if (type === "checkIn" && data.checkIn) {
-          return showFlash("⚠️ تم تسجيل الحضور مسبقًا لهذا اليوم", "info");
-        }
-        if (type === "checkOut" && data.checkOut) {
-          return showFlash("⚠️ تم تسجيل الانصراف مسبقًا لهذا اليوم", "info");
-        }
-      }
-
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        const distance = getDistanceMeters(lat, lng, allowedRegion.lat, allowedRegion.lng);
-
-        if (distance > allowedRegion.radius) {
-          return showFlash(`❌ أنت خارج نطاق المنطقة المسموح بها (${Math.round(distance)}م)`, "error");
+        function showFlash(msg, type = "info") {
+            flash.textContent = msg;
+            flash.className = type;
+            flash.style.display = "block";
+            setTimeout(() => { flash.style.display = "none"; }, 3500);
         }
 
-        const time = nowTime24();
-        const base = `attendance/${today}/${code}`;
-        const payload = {};
-        payload[`${base}/${type}`] = { time, status: 'تم التسجيل', companyCode, device: 'Mobile', lat, lng };
-        payload[`${base}/lastUpdate`] = { time, type, ts: Date.now(), device: 'Mobile', lat, lng };
+        // طلب إذن الموقع عند الدخول للصفحة (تنبيه فقط)
+        window.onload = () => {
+            if (!navigator.geolocation) {
+                geoMsg.style.display = "block";
+                geoMsg.textContent = "⚠️ جهازك لا يدعم تحديد الموقع.";
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                () => console.log("✔️ إذن الموقع مفعل."),
+                (err) => {
+                    geoMsg.style.display = "block";
+                    if (err.code === 1) {
+                        geoMsg.textContent = "❌ تم رفض إذن الموقع. الرجاء السماح من إعدادات المتصفح.";
+                    } else if (err.code === 2) {
+                        geoMsg.textContent = "⚠️ تعذر الحصول على الموقع. تأكد من تشغيل GPS.";
+                    } else {
+                        geoMsg.textContent = "⚠️ الرجاء السماح للموقع من إعدادات المتصفح.";
+                    }
+                    console.error(err);
+                },
+                { enableHighAccuracy: true, timeout: 15000 }
+            );
+        };
 
-        await update(ref(db), payload);
-        showFlash(`✅ تم تسجيل ${type === 'checkIn' ? 'الحضور' : 'الانصراف'} بنجاح`, "success");
+        // ---------- تحميل تعريفات الإجازات لمرة واحدة ----------
+        async function loadLeaveDefinitionsToSelect() {
+            leaveTypeSelect.innerHTML = '<option value="">اختر نوع الإجازة</option>';
+            const snap = await get(ref(db, "LeaveDefinitions"));
+            if (!snap.exists()) return;
+            const data = snap.val();
+            for (const [code, val] of Object.entries(data)) {
+                const opt = document.createElement("option");
+                opt.value = code;
+                opt.textContent = val.name || code;
+                leaveTypeSelect.appendChild(opt);
+            }
+        }
+        loadLeaveDefinitionsToSelect();
 
-      }, (err) => {
-        showFlash("❌ لم يتم الحصول على الموقع", "error");
-        geoMsg.style.display = "block";
-        geoMsg.textContent = "⚠️ يرجى تفعيل إذن الموقع يدويًا واختيار (السماح دائمًا).";
-        console.error(err);
-      }, { enableHighAccuracy: true, timeout: 15000 });
-    }
+        // ---------- مساعدة: تحميل منطقة الموظف ----------
+        async function loadAllowedRegion(regionCode) {
+            if (!regionCode) return null;
+            const snap = await get(ref(db, `Region/${regionCode}`));
+            if (!snap.exists()) return null;
+            const r = snap.val();
+            return { lat: parseFloat(r.Lat), lng: parseFloat(r.Lng), radius: parseFloat(r.Radius) };
+        }
 
-    document.getElementById("checkInBtn").onclick = () => saveAttendance('checkIn');
-    document.getElementById("checkOutBtn").onclick = () => saveAttendance('checkOut');
+        // ---------- حسابات صغيرة ----------
+        function nowISODate() { return new Date().toISOString().split("T")[0]; }
+        function nowTime24() { return new Date().toLocaleTimeString("en-GB", { hour12: false }); }
+        function getDistanceMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const toRad = v => v * Math.PI / 180;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
 
-  </script>
+        // ---------- تسجيل الدخول بسياسات الجهاز الواحد ----------
+        // 🔹 تسجيل الدخول (بجهاز واحد فقط)
+        loginBtn.onclick = async () => {
+            loginMsg.textContent = "";
+            const code = empCodeInput.value.trim();
+            const pass = empPassInput.value.trim();
 
+            // السماح فقط من الهاتف الجوال
+            if (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                loginMsg.textContent = "❌ لا يمكن تسجيل الدخول إلا من خلال هاتف جوّال فقط.";
+                return;
+            }
+
+            // التأكد من إدخال البيانات
+            if (!code || !pass) {
+                loginMsg.textContent = "⚠️ أدخل كود الموظف وكلمة المرور.";
+                return;
+            }
+
+            try {
+                // إنشاء أو استرجاع معرف فريد لهذا الهاتف
+                let deviceId = localStorage.getItem("deviceId");
+                if (!deviceId) {
+                    deviceId = crypto.randomUUID();
+                    localStorage.setItem("deviceId", deviceId);
+                }
+
+                // --- 1️⃣ تحقق: هل هذا الهاتف مرتبط فعلاً بموظف آخر؟ ---
+                const allEmpSnap = await get(ref(db, "hrEmployees"));
+                if (allEmpSnap.exists()) {
+                    const allEmps = allEmpSnap.val();
+                    for (const [empCode, empData] of Object.entries(allEmps)) {
+                        if (empData.deviceId && empData.deviceId === deviceId && empCode !== code) {
+                            loginMsg.textContent = "❌ هذا الهاتف مرتبط بحساب موظف آخر، لا يمكن استخدامه.";
+                            return;
+                        }
+                    }
+                }
+
+                // --- 2️⃣ جلب بيانات الموظف الحالي ---
+                const empRef = ref(db, `hrEmployees/${code}`);
+                const snap = await get(empRef);
+                if (!snap.exists()) {
+                    loginMsg.textContent = "❌ كود الموظف غير صحيح.";
+                    return;
+                }
+
+                const emp = snap.val();
+                const savedPass = emp.password || emp.personal?.nid;
+                if (savedPass !== pass) {
+                    loginMsg.textContent = "❌ كلمة المرور غير صحيحة.";
+                    return;
+                }
+
+                // --- 3️⃣ تحقق: هل هذا الحساب مرتبط بجهاز آخر؟ ---
+                const registeredDevice = emp.deviceId || null;
+                if (registeredDevice && registeredDevice !== deviceId) {
+                    loginMsg.textContent = "❌ هذا الحساب مسجل على هاتف آخر، لا يمكن تسجيل الدخول.";
+                    return;
+                }
+
+                // --- 4️⃣ أول مرة: حفظ رقم الجهاز في قاعدة البيانات ---
+                if (!registeredDevice) {
+                    await update(empRef, { deviceId });
+                }
+
+                // --- 5️⃣ تسجيل الدخول بنجاح ---
+                currentEmp = emp;
+                currentEmpCode = code;
+                loginPanel.style.display = "none";
+                empPanel.style.display = "block";
+                empName.textContent = emp.personal?.fullName || "---";
+                empJob.textContent = emp.job?.jobTitle || "";
+                showFlash("✅ تم تسجيل الدخول بنجاح", "success");
+
+                // --- 6️⃣ تحميل موقع العمل المسموح ---
+                allowedRegion = await loadAllowedRegion(emp.job?.workLocation || "");
+                if (!allowedRegion) {
+                    showFlash("⚠️ لم يتم العثور على المنطقة المسموح بها لهذا الموظف", "error");
+                }
+
+
+            } catch (err) {
+                console.error(err);
+                loginMsg.textContent = "❌ حدث خطأ أثناء تسجيل الدخول، حاول مرة أخرى.";
+            }
+        };
+
+        // ---------- تسجيل الحضور والانصراف ----------
+        async function saveAttendance(type) {
+            if (!currentEmp) return showFlash("لم يتم تسجيل الدخول", "error");
+            if (!navigator.geolocation) return showFlash("جهازك لا يدعم تحديد الموقع", "error");
+            if (!allowedRegion) return showFlash("⚠️ لم يتم تحديد المنطقة المسموح بها للموظف", "error");
+
+            const code = currentEmpCode;
+            const today = nowISODate();
+            const attendanceRef = ref(db, `attendance/${today}/${code}`);
+            const existingSnap = await get(attendanceRef);
+            if (existingSnap.exists()) {
+                const data = existingSnap.val();
+                if (type === "checkIn" && data.checkIn) return showFlash("⚠️ تم تسجيل الحضور مسبقًا لهذا اليوم", "info");
+                if (type === "checkOut" && data.checkOut) return showFlash("⚠️ تم تسجيل الانصراف مسبقًا لهذا اليوم", "info");
+            }
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const distance = getDistanceMeters(lat, lng, allowedRegion.lat, allowedRegion.lng);
+
+                if (distance > allowedRegion.radius) {
+                    return showFlash(`❌ أنت خارج نطاق المنطقة المسموح بها (${Math.round(distance)}م)`, "error");
+                }
+
+                const time = nowTime24();
+                const base = `attendance/${today}/${code}`;
+                const payload = {};
+                payload[`${base}/${type}`] = { time, status: 'تم التسجيل', companyCode, device: 'Mobile', lat, lng };
+                payload[`${base}/lastUpdate`] = { time, type, ts: Date.now(), device: 'Mobile', lat, lng };
+
+                await update(ref(db), payload);
+                showFlash(`✅ تم تسجيل ${type === 'checkIn' ? 'الحضور' : 'الانصراف'} بنجاح`, "success");
+            }, (err) => {
+                showFlash("❌ لم يتم الحصول على الموقع", "error");
+                geoMsg.style.display = "block";
+                geoMsg.textContent = "⚠️ يرجى تفعيل إذن الموقع يدويًا.";
+                console.error(err);
+            }, { enableHighAccuracy: true, timeout: 15000 });
+        }
+
+        checkInBtn.onclick = () => saveAttendance('checkIn');
+        checkOutBtn.onclick = () => saveAttendance('checkOut');
+
+        // ---------- فتح شاشة الإجازات للموظف ----------
+        leaveMenu.onclick = async () => {
+            if (!currentEmp) return showFlash("يرجى تسجيل الدخول أولاً", "error");
+            // show leavePanel
+            leavePanel.classList.add("show");
+            // fill leave types (in case updated)
+            await loadLeaveDefinitionsToSelect();
+            leaveMsg.textContent = "";
+            await loadMyLeaves();
+            // hide other panels
+            empPanel.style.display = "block"; // empPanel contains leavePanel; keep it visible
+        };
+
+        backToMainBtn.onclick = () => {
+            leavePanel.classList.remove("show");
+        };
+
+        // ---------- إرسال طلب إجازة (يحفظ ويبلغ المدير وHR) ----------
+        sendLeaveBtn.onclick = async () => {
+            if (!currentEmp) return showFlash("يرجى تسجيل الدخول أولاً", "error");
+
+            const type = leaveTypeSelect.value;
+            const from = leaveFrom.value;
+            const to = leaveTo.value;
+            const notes = leaveNotes.value || "";
+
+            if (!type || !from || !to) {
+                leaveMsg.textContent = "⚠️ يرجى تعبئة جميع الحقول";
+                leaveMsg.style.color = "yellow";
+                return;
+            }
+
+            const empCode = currentEmpCode;
+            const requestId = Date.now().toString();
+
+            // بيانات المدير وHR من ملف الموظف المسجّل
+            const managerCode = currentEmp.job?.managerCode || "";
+            const hrCode = currentEmp.job?.hrCode || "";
+
+            const payload = {
+                type,
+                from,
+                to,
+                notes,
+                status: "قيد المراجعة",
+                requestedAt: new Date().toISOString(),
+                empName: currentEmp.personal?.fullName || "",
+                empCode,
+                managerCode,
+                hrCode,
+                requestId
+            };
+
+            try {
+                // نحفظ الطلب تحت LeaveRequests/{empCode}/{requestId}
+                await set(ref(db, `LeaveRequests/${empCode}/${requestId}`), payload);
+
+                // نخبر المدير والـ HR بإشعار (Notifications/{managerCode}/{notifId})
+                const notifTime = new Date().toISOString();
+
+                if (managerCode) {
+                    await set(ref(db, `Notifications/${managerCode}/${requestId}`), {
+                        title: "طلب إجازة جديد",
+                        message: `📅 الموظف ${currentEmp.personal?.fullName} قدم طلب إجازة من ${from} إلى ${to}`,
+                        type: "leaveRequest",
+                        empCode,
+                        requestId,
+                        from,
+                        to,
+                        time: notifTime,
+                        status: "unread"
+                    });
+                }
+                if (hrCode) {
+                    // استخدم نفس requestId لتسهيل المتابعة
+                    await set(ref(db, `Notifications/${hrCode}/${requestId}`), {
+                        title: "طلب إجازة جديد (HR)",
+                        message: `👤 الموظف ${currentEmp.personal?.fullName} أرسل طلب إجازة لمراجعتك.`,
+                        type: "leaveRequest",
+                        empCode,
+                        requestId,
+                        from,
+                        to,
+                        time: notifTime,
+                        status: "unread"
+                    });
+                }
+
+                leaveMsg.textContent = "✅ تم إرسال الطلب بنجاح";
+                leaveMsg.style.color = "#00ff80";
+                leaveFrom.value = "";
+                leaveTo.value = "";
+                leaveNotes.value = "";
+                await loadMyLeaves();
+            } catch (err) {
+                console.error(err);
+                leaveMsg.textContent = "❌ فشل إرسال الطلب. راجع اتصالك أو الصلاحيات.";
+                leaveMsg.style.color = "#ff8080";
+            }
+        };
+
+        // ---------- تحميل طلبات الموظف (عرض للموظف) ----------
+        async function loadMyLeaves() {
+            if (!currentEmp) { myLeavesDiv.textContent = "يرجى تسجيل الدخول"; return; }
+            const empCode = currentEmpCode;
+            const snap = await get(ref(db, `LeaveRequests/${empCode}`));
+            myLeavesDiv.innerHTML = "";
+            if (!snap.exists()) { myLeavesDiv.textContent = "لا توجد طلبات إجازة حالياً."; return; }
+            const data = snap.val();
+            // ترتيب حسب الوقت تنازلي بسيط
+            const entries = Object.entries(data).sort((a, b) => b[0] - a[0]);
+            for (const [id, req] of entries) {
+                const div = document.createElement("div");
+                div.style.margin = "8px 0";
+                div.style.padding = "8px";
+                div.style.borderRadius = "8px";
+                div.style.background = "rgba(255,255,255,0.03)";
+                div.innerHTML = `<b>${req.type || '-'}</b> — ${req.from} → ${req.to} <br> <small>${req.notes || '-'}</small> <br> <b>الحالة: ${req.status || '-'}</b>`;
+                myLeavesDiv.appendChild(div);
+            }
+        }
+
+        // ---------- Notifications panel (for manager / HR / employee) ----------
+        permMenu.onclick = async () => {
+            if (!currentEmp) return showFlash("يرجى تسجيل الدخول أولاً", "error");
+
+            // عرض لوحة الإشعارات
+            empPanel.style.display = "none";
+            notifPanel.style.display = "block";
+
+            // تحميل إشعارات للـ currentEmpCode (ولوحة المدير أو HR أو حتى الموظف نفسه)
+            await loadNotificationsForCurrentUser();
+        };
+
+        backFromNotif.onclick = () => {
+            notifPanel.style.display = "none";
+            empPanel.style.display = "block";
+        };
+
+        async function loadNotificationsForCurrentUser() {
+            notifList.innerHTML = "⏳ جاري تحميل الإشعارات...";
+            const code = currentEmpCode;
+            const snap = await get(ref(db, `Notifications/${code}`));
+            notifList.innerHTML = "";
+            if (!snap.exists()) { notifList.textContent = "📭 لا توجد إشعارات حالياً."; return; }
+            const data = snap.val();
+
+            // ترتيب مفاتيح تنازلياً
+            const entries = Object.entries(data).sort((a, b) => b[0] - a[0]);
+
+            for (const [id, n] of entries) {
+                const container = document.createElement("div");
+                container.className = "notif-item";
+                container.innerHTML = `<b>${n.title}</b><br>${n.message || ''}<br><small>${n.time ? n.time.split('T')[0] + ' ' + (n.time.split('T')[1] || '') : ''}</small>`;
+
+                // إذا كانت الإشعار عن طلب إجازة نعرض زرين قبول/رفض
+                if (n.type === "leaveRequest" && n.requestId && n.empCode) {
+                    const actions = document.createElement("div");
+                    actions.className = "notif-actions";
+
+                    const btnAccept = document.createElement("button");
+                    btnAccept.className = "small-btn";
+                    btnAccept.textContent = "قبول ✅";
+                    btnAccept.onclick = async () => {
+                        await handleLeaveDecision(n.empCode, n.requestId, "مقبول", currentEmpCode, id);
+                    };
+
+                    const btnReject = document.createElement("button");
+                    btnReject.className = "small-btn";
+                    btnReject.textContent = "رفض ❌";
+                    btnReject.onclick = async () => {
+                        await handleLeaveDecision(n.empCode, n.requestId, "مرفوض", currentEmpCode, id);
+                    };
+
+                    // زر فتح تفاصيل الطلب (عرض بيانات الطلب)
+                    const btnOpen = document.createElement("button");
+                    btnOpen.className = "small-btn";
+                    btnOpen.textContent = "عرض الطلب";
+                    btnOpen.onclick = async () => {
+                        const reqSnap = await get(ref(db, `LeaveRequests/${n.empCode}/${n.requestId}`));
+                        if (!reqSnap.exists()) return alert("⚠️ لم يتم العثور على الطلب.");
+                        const r = reqSnap.val();
+                        alert(`طلب من ${r.empName}\n${r.from} → ${r.to}\nنوع: ${r.type}\nملاحظات: ${r.notes || '-'}`);
+                    };
+
+                    actions.appendChild(btnOpen);
+                    actions.appendChild(btnAccept);
+                    actions.appendChild(btnReject);
+                    container.appendChild(actions);
+                }
+
+                // زر حذف الإشعار إن أراد المستخدم (مثلاً بعد الإطلاع)
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "small-btn";
+                deleteBtn.textContent = "مسح الإشعار";
+                deleteBtn.onclick = async () => {
+                    if (!confirm("هل تريد حذف هذه الإشعار؟")) return;
+                    await remove(ref(db, `Notifications/${currentEmpCode}/${id}`));
+                    await loadNotificationsForCurrentUser();
+                };
+                container.appendChild(deleteBtn);
+
+                notifList.appendChild(container);
+            }
+        }
+
+        // ---------- قبول / رفض طلب الإجازة من المدير أو HR ----------
+        async function handleLeaveDecision(empCodeTarget, requestId, decision, approverCode, notifId = null) {
+            const ok = confirm(`هل أنت متأكد من ${decision === "مقبول" ? "قبول" : "رفض"} هذا الطلب؟`);
+            if (!ok) return;
+
+            const reqRef = ref(db, `LeaveRequests/${empCodeTarget}/${requestId}`);
+            const reqSnap = await get(reqRef);
+            if (!reqSnap.exists()) return alert("⚠️ لم يتم العثور على الطلب.");
+
+            // تحديث حالة الطلب
+            await update(reqRef, {
+                status: decision,
+                reviewedBy: approverCode,
+                reviewedAt: new Date().toISOString()
+            });
+
+            // إرسال إشعار إلى الموظف بنتيجة القرار
+            const notifTime = new Date().toISOString();
+            const empNotifRef = ref(db, `Notifications/${empCodeTarget}/${Date.now().toString()}`);
+            await set(empNotifRef, {
+                title: "تحديث طلب الإجازة",
+                message: `📅 تم ${decision === "مقبول" ? "قبول" : "رفض"} طلب الإجازة الخاص بك.`,
+                type: "leaveUpdate",
+                time: notifTime,
+                status: "unread",
+                requestId,
+                by: approverCode
+            });
+
+            // اختيارياً: حذف إشعارات المدير/HR القديمة المتعلقة بنفس الطلب (أو تعليمها كمقروءة)
+            if (notifId) {
+                // هنا نحذف إشعار القائم بالقرار (لأنه تعامل معه)
+                await remove(ref(db, `Notifications/${approverCode}/${notifId}`));
+            } else {
+                // إن لم يوجد notifId قد نريد البحث عن الإشعارات المطابقة وحذفها — سنتركها كما هي أو يمكنك طلب حذفها لاحقاً
+            }
+
+            alert(`✅ تم ${decision === "مقبول" ? "قبول" : "رفض"} الطلب بنجاح.`);
+            // إعادة تحميل الإشعارات
+            await loadNotificationsForCurrentUser();
+        }
+
+        // ---------- عرض طلبات الموظف عند الضغط على "طلباتي" (مثال سريع) ----------
+        myRequestsMenu.onclick = async () => {
+            if (!currentEmp) return showFlash("يرجى تسجيل الدخول", "error");
+            // نظهر له نفس لوحة الإشعارات لكن محتواها طلباته
+            empPanel.style.display = "none";
+            notifPanel.style.display = "block";
+            notifList.innerHTML = "⏳ جاري التحميل...";
+            const snap = await get(ref(db, `LeaveRequests/${currentEmpCode}`));
+            notifList.innerHTML = "";
+            if (!snap.exists()) { notifList.textContent = "لا توجد طلبات مسجلة."; return; }
+            const data = snap.val();
+            const entries = Object.entries(data).sort((a, b) => b[0] - a[0]);
+            for (const [id, r] of entries) {
+                const div = document.createElement("div");
+                div.className = "notif-item";
+                div.innerHTML = `<b>${r.type}</b> — ${r.from} → ${r.to}<br> <b>الحالة:</b> ${r.status || '-'}<br><small>طلب بتاريخ: ${r.requestedAt?.split('T')[0] || '-'}</small>`;
+                notifList.appendChild(div);
+            }
+        };
+
+        // ---------- زر "الحضور" في الشبكة (مثال) ----------
+        attendanceMenu.onclick = () => {
+            showFlash("استخدم أزرار تسجيل الحضور/الانصراف في الأسفل.", "info");
+        };
+
+        // ---------- اختصار: تحميل الإشعارات دورياً؟ (يمكنك تعديل أو تعطيل) ----------
+        // ملاحظة: لتبسيط الكود هنا لم نفعل الاستماع المباشر (onValue) ولكن يمكن إضافته بسهولة.
+    </script>
 </body>
 
 </html>
